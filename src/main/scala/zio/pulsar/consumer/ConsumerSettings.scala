@@ -1,9 +1,6 @@
 package zio.pulsar.consumer
 
-case class ConsumerSettings(topics: List[String], properties: Map[String, AnyRef]) {
-
-  def toMap: Map[String, AnyRef] =
-    Map("topicNames" -> topics.mkString(",")) ++ properties
+case class ConsumerSettings(topics: String, properties: Map[String, AnyRef]) {
 
   def withProperty(key: String, value: AnyRef): ConsumerSettings =
     copy(properties = properties + (key -> value))
@@ -16,6 +13,6 @@ case class ConsumerSettings(topics: List[String], properties: Map[String, AnyRef
 }
 
 object ConsumerSettings {
-  def apply(topics: List[String]): ConsumerSettings =
-    new ConsumerSettings(topics, Map.empty[String, AnyRef])
+  def apply(topic: String): ConsumerSettings =
+    new ConsumerSettings(topic, Map.empty[String, AnyRef])
 }
