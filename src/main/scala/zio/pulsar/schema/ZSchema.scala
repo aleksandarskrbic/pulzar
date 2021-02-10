@@ -4,7 +4,7 @@ import org.apache.pulsar.client.api.Schema
 import org.apache.pulsar.common.schema.{ SchemaInfo, SchemaType }
 import zio.json._
 
-class ZSchema[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonDecoder[T]) extends Schema[T] {
+case class ZSchema[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonDecoder[T]) extends Schema[T] {
   override def encode(message: T): Array[Byte] =
     encoder.encodeJson(message, Option(4)).toString.getBytes("UTF-8")
 
@@ -16,10 +16,4 @@ class ZSchema[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonDecode
       .setName(manifest[T].runtimeClass.getCanonicalName)
       .setType(SchemaType.JSON)
       .setSchema("""{"type":"any"}""".getBytes("UTF-8"))
-}
-
-object ZSchema {
-
-  def apply[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonDecoder[T]): ZSchema[T] =
-    new ZSchema[T]()
 }

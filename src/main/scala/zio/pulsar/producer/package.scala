@@ -14,14 +14,14 @@ package object producer {
   object PulsarProducer {
     trait Service[M] {
       def underlying: UIO[Producer[M]]
-      def sendAsync(key: String, message: M): Task[MessageId]
+      def send(key: String, message: M): Task[MessageId]
     }
 
     final case class Live[M](producer: Producer[M]) extends Service[M] {
 
       override def underlying: UIO[Producer[M]] = UIO(producer)
 
-      override def sendAsync(key: String, message: M): Task[MessageId] =
+      override def send(key: String, message: M): Task[MessageId] =
         for {
           msg <- UIO(prepare(key, message))
           res <- Task.fromCompletionStage(msg.sendAsync())
@@ -53,7 +53,7 @@ package object producer {
     ): ZLayer[ClientProvider, PulsarClientException, PulsarProducer[M]] =
       make(producerSettings, schema).toLayer
 
-    def sendAsync[M: Tag](key: String, message: M): ZIO[PulsarProducer[M], Throwable, MessageId] =
-      ZIO.accessM(_.get.sendAsync(key, message))
+    def send[M: Tag](key: String, message: M): ZIO[PulsarProducer[M], Throwable, MessageId] =
+      ZIO.accessM(_.get.send(key, message))
   }
 }
