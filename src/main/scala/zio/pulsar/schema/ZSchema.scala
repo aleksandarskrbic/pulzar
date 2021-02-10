@@ -1,10 +1,11 @@
 package zio.pulsar.schema
 
+import izumi.reflect.Tag
 import org.apache.pulsar.client.api.Schema
 import org.apache.pulsar.common.schema.{ SchemaInfo, SchemaType }
 import zio.json._
 
-case class ZSchema[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonDecoder[T]) extends Schema[T] {
+case class ZSchema[T: Tag](implicit encoder: JsonEncoder[T], decoder: JsonDecoder[T]) extends Schema[T] {
   override def encode(message: T): Array[Byte] =
     encoder.encodeJson(message, Option(4)).toString.getBytes("UTF-8")
 
@@ -13,7 +14,7 @@ case class ZSchema[T: Manifest](implicit encoder: JsonEncoder[T], decoder: JsonD
 
   override def getSchemaInfo: SchemaInfo =
     new SchemaInfo()
-      .setName(manifest[T].runtimeClass.getCanonicalName)
+      .setName(Tag[T].closestClass.getCanonicalName)
       .setType(SchemaType.JSON)
       .setSchema("""{"type":"any"}""".getBytes("UTF-8"))
 }

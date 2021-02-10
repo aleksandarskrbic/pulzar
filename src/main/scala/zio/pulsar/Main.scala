@@ -5,7 +5,7 @@ import zio._
 import zio.json._
 import zio.pulsar.client.{ ClientProvider, ClientSettings }
 import zio.pulsar.producer.{ ProducerSettings, PulsarProducer }
-import zio.pulsar.schema.ZSchema
+import zio.pulsar.schema.{ ZSchema }
 
 object Dependencies {
   final case class CustomMessage(text: String)
@@ -27,35 +27,45 @@ object ZIOMain extends zio.App {
     (produce *> ZIO.succeed(ExitCode.success)).provideLayer(producerLayer).orDie
   }
 
-  def produce: ZIO[PulsarProducer[CustomMessage], Throwable, (MessageId, MessageId)] = {
+  def produce: ZIO[PulsarProducer[CustomMessage], Throwable, Unit] =
     for {
-      f1 <- PulsarProducer.send("key 1", CustomMessage("zio-pulsar-1")).fork
-      f2 <- PulsarProducer.send("key 2", CustomMessage("zio-pulsar-2")).fork
-      r1 <- f1.join
-      r2 <- f2.join
-    } yield (r1, r2)
-  }
+      f1 <- PulsarProducer.send("key 3", CustomMessage("zio-pulsar-1")).fork
+      f2 <- PulsarProducer.send("key 4", CustomMessage("zio-pulsar-2")).fork
+      f3 <- PulsarProducer.send("key 5", CustomMessage("zio-pulsar-2")).fork
+      _  <- f1.join
+      _  <- f2.join
+      _  <- f3.join
+    } yield ()
 }
 
 object Main {
   import Dependencies._
 
   def main(args: Array[String]): Unit = {
+
     val client: PulsarClient = PulsarClient
       .builder()
       .serviceUrl("pulsar://localhost:6650")
       .build()
 
+    val producer = client
+      .newProducer(zSchema)
+      .topic("demo-topic-1")
+      .create()
+
     val consumer = client
       .newConsumer(zSchema)
-      .topic("demo-topic")
-      .subscriptionName("random-consumer-2")
+      .topic("demo-topic-1")
+      .subscriptionName("random-consumer-1")
       .subscribe()
 
+    var cnt = 0
     while (true) {
-      println("consuming")
-      val msg = consumer.batchReceive()
-      println(msg)
+      producer.newMessage().key(cnt.toString).value(CustomMessage(cnt.toString)).send()
+      cnt += 1
+      val msg = consumer.receive()
+      val v   = msg.getValue
+      println(v)
     }
   }
 

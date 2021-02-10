@@ -53,6 +53,8 @@ lazy val pulsar =
       libraryDependencies ++= Seq(
         "dev.zio"                    %% "zio-streams"             % zioVersion,
         "dev.zio"                    %% "zio-json"                % "0.0.1",
+        "io.circe"                   %% "circe-core"              % "0.13.0",
+        "io.circe"                   %% "circe-generic"           % "0.13.0",
         "dev.zio"                    %% "zio-test"                % zioVersion % "test",
         "dev.zio"                    %% "zio-test-sbt"            % zioVersion % "test",
         "org.apache.pulsar"          % "pulsar-client"            % pulsarVersion,
