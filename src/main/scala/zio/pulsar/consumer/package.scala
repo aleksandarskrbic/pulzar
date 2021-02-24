@@ -35,7 +35,7 @@ package object consumer {
         UIO(consumer.negativeAcknowledge(messageId))
 
       override def plainStream: ZStream[Any, Throwable, Message[M]] =
-        ZStream.fromEffect(receive).forever
+        ZStream.repeatEffect(receive)
 
       private[consumer] def close: UIO[Unit] =
         UIO(consumer.close())
